@@ -35,3 +35,12 @@
         - 24224:24224
         - 24224:24224/udp
         - 5140:5140
+    curator:
+      build: ./curator
+      container_name: docker-curator
+      environment:
+        - "TZ=America/Toronto"
+        - "SCHEDULE=*/2 * * * *"
+        - "COMMAND=curator --config /var/lib/curator/config.yml  /var/lib/curator/delete_action.yml"
+      links:
+        - elasticsearch
