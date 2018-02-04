@@ -1,46 +1,38 @@
 ---
-  version: '2'
-  services:
+version: '3'
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:${TAG}
+    container_name: docker-elasticsearch
+    environment: ['discovery.type=single-node', 'TZ=America/Toronto']
+    ports: ['9200:9200']
+      networks: ['net_efk']
 
     kibana:
-      image: docker.elastic.co/kibana/kibana-oss:6.0.0
+      image: docker.elastic.co/kibana/kibana-oss:${TAG}
       container_name: docker-kibana
-      links:
-        - elasticsearch
       environment:
-        SERVER_NAME: kibana.example.org
-        ELASTICSEARCH_URL: http://172.18.0.2:9200
-        TZ: America/Toronto
-      ports:
-        - 5601:5601
-    elasticsearch:
-      image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.0.0
-      container_name: docker-elasticsearch
-      environment:
-        - "discovery.type=single-node"
-        - "TZ=America/Toronto"
-      ports:
-        - 9200:9200
-        - 9300:9300
+        - ELASTICSEARCH_URL=http://elasticsearch:9200
+        - TZ=America/Toronto
+      ports: ['5602:5601']
+      networks: ['net_efk']
+
     fluentd:
       build: ./fluentd
       container_name: docker-fluentd
-      environment:
-        - "TZ=America/Toronto"
+      environment: ['TZ=America/Toronto']
       volumes:
         - ./fluentd/conf:/fluentd/etc
-      links:
-        - elasticsearch
-      ports:
-        - 24224:24224
-        - 24224:24224/udp
-        - 5140:5140
+      depends_on: ['elasticsearch']
+      networks: ['net_efk']
+      ports: ['24224:24224', '24224:24224/udp', '5140:5140']
+
     curator:
       build: ./curator
       container_name: docker-curator
-      environment:
-        - "TZ=America/Toronto"
-        - "SCHEDULE=*/2 * * * *"
-        - "COMMAND=curator --config /var/lib/curator/config.yml  /var/lib/curator/delete_action.yml"
-      links:
-        - elasticsearch
+      environment: ['TZ=America/Toronto', 'SCHEDULE=*/2 * * * *', 'COMMAND=curator --config /var/lib/curator/config.yml  /var/lib/curator/delete_action.yml"']
+      networks: ['net_efk']
+      depends_on: ['elasticsearch']
+
+  networks:
+    net_efk:
