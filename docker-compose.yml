@@ -7,7 +7,7 @@
       container_name: docker-elasticsearch
       environment: ['discovery.type=single-node', 'TZ=America/Toronto']
       ports: ['9200:9200']
-        networks: ['net_efk']
+      networks: ['net_efk']
 
       kibana:
         image: docker.elastic.co/kibana/kibana-oss:${TAG}
