@@ -1,38 +1,39 @@
 ---
-version: '3'
-services:
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch-oss:${TAG}
-    container_name: docker-elasticsearch
-    environment: ['discovery.type=single-node', 'TZ=America/Toronto']
-    ports: ['9200:9200']
-      networks: ['net_efk']
+  version: '3'
+  services:
 
-    kibana:
-      image: docker.elastic.co/kibana/kibana-oss:${TAG}
-      container_name: docker-kibana
-      environment:
-        - ELASTICSEARCH_URL=http://elasticsearch:9200
-        - TZ=America/Toronto
-      ports: ['5602:5601']
-      networks: ['net_efk']
+    elasticsearch:
+      image: docker.elastic.co/elasticsearch/elasticsearch-oss:${TAG}
+      container_name: docker-elasticsearch
+      environment: ['discovery.type=single-node', 'TZ=America/Toronto']
+      ports: ['9200:9200']
+        networks: ['net_efk']
 
-    fluentd:
-      build: ./fluentd
-      container_name: docker-fluentd
-      environment: ['TZ=America/Toronto']
-      volumes:
-        - ./fluentd/conf:/fluentd/etc
-      depends_on: ['elasticsearch']
-      networks: ['net_efk']
-      ports: ['24224:24224', '24224:24224/udp', '5140:5140']
+      kibana:
+        image: docker.elastic.co/kibana/kibana-oss:${TAG}
+        container_name: docker-kibana
+        environment:
+          - ELASTICSEARCH_URL=http://elasticsearch:9200
+          - TZ=America/Toronto
+        ports: ['5601:5601']
+        networks: ['net_efk']
 
-    curator:
-      build: ./curator
-      container_name: docker-curator
-      environment: ['TZ=America/Toronto', 'SCHEDULE=*/2 * * * *', 'COMMAND=curator --config /var/lib/curator/config.yml  /var/lib/curator/delete_action.yml"']
-      networks: ['net_efk']
-      depends_on: ['elasticsearch']
+      fluentd:
+        build: ./fluentd
+        container_name: docker-fluentd
+        environment: ['TZ=America/Toronto']
+        volumes:
+          - ./fluentd/conf:/fluentd/etc
+        depends_on: ['elasticsearch']
+        networks: ['net_efk']
+        ports: ['24224:24224', '24224:24224/udp', '5140:5140']
 
-  networks:
-    net_efk:
+      curator:
+        build: ./curator
+        container_name: docker-curator
+        environment: ['TZ=America/Toronto', 'SCHEDULE=*/2 * * * *', 'COMMAND=curator --config /var/lib/curator/config.yml  /var/lib/curator/delete_action.yml"']
+        networks: ['net_efk']
+        depends_on: ['elasticsearch']
+
+    networks:
+      net_efk:
