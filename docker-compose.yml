@@ -35,5 +35,5 @@
         networks: ['net_efk']
         depends_on: ['elasticsearch']
 
-    networks:
-      net_efk:
+  networks:
+    net_efk:
